@@ -27,7 +27,7 @@ const MyComponent = () => {
     fetchDataFromMongoDB();
 
     // Thiết lập interval để cập nhật dữ liệu mỗi 5 giây (hoặc bất kỳ khoảng thời gian nào bạn muốn)
-    const intervalId = setInterval(fetchDataFromMongoDB, 3000);
+    const intervalId = setInterval(fetchDataFromMongoDB, 1000);
 
     // Clear interval khi component unmount để tránh memory leaks
     return () => clearInterval(intervalId);
