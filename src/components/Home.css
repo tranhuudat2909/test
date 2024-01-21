@@ -197,3 +197,23 @@ input:checked + .slider:before {
   -ms-transform: translateX(26px);
   transform: translateX(26px);
 }
+
+
+/* Thêm kiểu cho start - stop*/
+.start-stop{
+  border: 1px solid #ccc; /* chỉnh vẽ border */
+}
+
+.start-button {
+  padding: 10px 20px; /* Adjust the padding as needed for your desired size */
+  font-size: 16px;    /* Adjust the font size as needed */
+
+  margin-right: 100px;
+}
+
+.stop-button{
+  padding: 10px 20px; /* Adjust the padding as needed for your desired size */
+  font-size: 16px;    /* Adjust the font size as needed */
+
+  margin-left: 100px;
+}

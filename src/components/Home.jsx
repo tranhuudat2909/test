@@ -17,6 +17,25 @@ function Home() {
     return localStorage.getItem('mode') || 'manual';
   }); // 'manual' hoặc 'auto'
 
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  // NÚT START ĐỂ BẮT ĐẦU 
+  const startSystem = () => {
+    // Add your logic to start sending data automatically
+    console.log('Start system');
+  };
+
+  // NÚT STOP ĐỂ DỪNG 
+  const stopSystem = () => {
+    // Add your logic to stop sending data automatically
+    console.log('Stop system');
+  };
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Hàm chuyển đổi giữa chế độ 'manual' và 'auto'
@@ -187,6 +206,14 @@ useEffect(() => {
                             </label>
                             <span>Auto</span>
                       </div>
+                      <div className='start-stop'>
+                        <h2>NÚT ĐIỀU KHIỂN HỆ THỐNG TỰ ĐỘNG</h2>
+                          {/* NÚT START */}
+                          <button className='start-button' onClick={startSystem}>Start</button>
+                          {/* NÚT STOP */}
+                          <button className='stop-button' onClick={stopSystem}>Stop</button> 
+                      </div>
+                    
                 </div>  
 
           <div className='right-form'>
