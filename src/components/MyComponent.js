@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import './MyComponent.css'; // Import file CSS
 
@@ -11,7 +10,7 @@ const MyComponent = () => {
         const response = await fetch('https://ap-southeast-1.aws.data.mongodb-api.com/app/application-0-zsywh/endpoint/get_auto');
         const data = await response.json();
 
-        console.log('Data from MongoDB:', data);
+        console.log('Dữ liệu từ MongoDB:', data);
 
         // Xử lý logic dựa trên giá trị mode
         if (data.length > 0 && data[0].mode === 'manual') {
@@ -19,27 +18,28 @@ const MyComponent = () => {
         } else {
           setButtonColor('red');
         }
+
+        // Cập nhật màu nền của nút dựa trên giá trị mới của buttonColor
+        const buttonElement = document.querySelector('.my-button');
+        if (buttonElement) {
+          buttonElement.style.backgroundColor = buttonColor;
+        }
       } catch (error) {
-        console.error('Error fetching data from MongoDB:', error);
+        console.error('Lỗi khi lấy dữ liệu từ MongoDB:', error);
       }
     };
 
     fetchDataFromMongoDB();
   }, []); // useEffect chỉ chạy một lần khi component được mount
 
-  useEffect(() => {
-    // Sự kiện này sẽ được gọi mỗi khi buttonColor thay đổi
+  const handleClick = () => {
+    setButtonColor((prevColor) => (prevColor === 'red' ? 'green' : 'red'));
+
     // Cập nhật màu nền của nút dựa trên giá trị mới của buttonColor
     const buttonElement = document.querySelector('.my-button');
     if (buttonElement) {
       buttonElement.style.backgroundColor = buttonColor;
     }
-  }, [buttonColor]);
-
-  
-
-  const handleClick = () => {
-    setButtonColor((prevColor) => (prevColor === 'red' ? 'green' : 'red'));
   };
 
   return (
