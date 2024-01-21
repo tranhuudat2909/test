@@ -18,28 +18,23 @@ const MyComponent = () => {
         } else {
           setButtonColor('red');
         }
-
-        // Cập nhật màu nền của nút dựa trên giá trị mới của buttonColor
-        const buttonElement = document.querySelector('.my-button');
-        if (buttonElement) {
-          buttonElement.style.backgroundColor = buttonColor;
-        }
       } catch (error) {
         console.error('Lỗi khi lấy dữ liệu từ MongoDB:', error);
       }
     };
 
+    // Gọi fetchDataFromMongoDB mỗi khi component được render
     fetchDataFromMongoDB();
+
+    // Thiết lập interval để cập nhật dữ liệu mỗi 5 giây (hoặc bất kỳ khoảng thời gian nào bạn muốn)
+    const intervalId = setInterval(fetchDataFromMongoDB, 3000);
+
+    // Clear interval khi component unmount để tránh memory leaks
+    return () => clearInterval(intervalId);
   }, []); // useEffect chỉ chạy một lần khi component được mount
 
   const handleClick = () => {
     setButtonColor((prevColor) => (prevColor === 'red' ? 'green' : 'red'));
-
-    // Cập nhật màu nền của nút dựa trên giá trị mới của buttonColor
-    const buttonElement = document.querySelector('.my-button');
-    if (buttonElement) {
-      buttonElement.style.backgroundColor = buttonColor;
-    }
   };
 
   return (
