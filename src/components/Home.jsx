@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Home.css';
+import './Left-form.css';
+import './Right-form.css';
 import { Link } from "react-router-dom";
 
 
@@ -12,74 +14,49 @@ function Home() {
   const [data, setData] = useState([]);
   const [sortedData, setSortedData] = useState([]);
   const [sortOrder, setSortOrder] = useState('asc');
-  const [mode, setMode] = useState(() => {
-    // Truy xuất chế độ từ localStorage hoặc đặt giá trị mặc định
-    return localStorage.getItem('mode') || 'manual';
-  }); // 'manual' hoặc 'auto'
-
+  const [mode, setMode] = useState(localStorage.getItem('mode') || '');
+  const [control, setControl] = useState(localStorage.getItem('control') || '');
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  // NÚT START ĐỂ BẮT ĐẦU 
-  const startSystem = () => {
-    // Add your logic to start sending data automatically
-    console.log('Start system');
-  };
+// CÁC THỨ LIÊN QUAN ĐẾN MANUAL VÀ AUTO ----- START VÀ STOP
 
-  // NÚT STOP ĐỂ DỪNG 
-  const stopSystem = () => {
-    // Add your logic to stop sending data automatically
-    console.log('Stop system');
-  };
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  // Hàm chuyển đổi giữa chế độ 'manual' và 'auto'
-  const toggleMode = () => {
-    const newMode = mode === 'manual' ? 'auto' : 'manual';
-    setMode(newMode);
-    // Lưu chế độ vào localStorage
-    localStorage.setItem('mode', newMode);
-  };
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
- // HÀM SẮP XẾP GIÁ TRỊ DỰA TRÊN giatri1 HAY CỘT 1
-const handleSort = () => {
-  const sortedDataCopy = [...sortedData];
-  sortedDataCopy.sort((a, b) => (sortOrder === 'asc' ? a.giatri1.localeCompare(b.giatri1) : b.giatri1.localeCompare(a.giatri1)));
-  setSortedData(sortedDataCopy);
-  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+// NÚT MANUAL
+const setModeManual = () => {
+  console.log('Setting mode to manual');
+  setMode('manual');
+  setControl('stop');
+  localStorage.setItem('mode', 'manual');
 };
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// NÚT AUTO
+const setModeAuto = () => {
+  console.log('Setting mode to auto');
+  setMode('auto');
+  localStorage.setItem('mode', 'auto');
+};
+
+// NÚT START 
+const setStartSystem = () => {
+  if (mode === 'manual') {
+    // Hiển thị cảnh báo nếu chế độ là 'manual'
+    window.alert('Không thể "start" hệ thống khi chế độ là "manual"');
+    console.log('hien thi thong bao');
+  } else {
+    setControl('start');
+    localStorage.setItem('control', 'start');
+  }
+};
+
+// NÚT STOP 
+const setStopSystem = () => {
+  setControl('stop');
+  localStorage.setItem('control', 'stop');
+};
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  // Lấy dữ liệu từ localStorage khi trang được tải lần đầu
-  useEffect(() => {
-    const storedData = localStorage.getItem('myData');
-    if (storedData) {
-      const parsedData = JSON.parse(storedData);
-      setData(parsedData);
-      setSortedData([...parsedData]); // Initialize sortedData with the initial data
-    }
-  }, []);
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// HÀM DÙNG ĐỂ POST CHẾ ĐỘ AUTO HAY MANUAL TỰ ĐỘNG KHÔNG BẤM NÚT
+// SEND DỮ LIỆU LÊN MONGO
 useEffect(() => {
   const sendModeData = async () => {
     try {
@@ -87,6 +64,7 @@ useEffect(() => {
         'https://ap-southeast-1.aws.data.mongodb-api.com/app/application-0-zsywh/endpoint/auto',
         {
           mode: mode === 'auto' ? 'auto' : 'manual',
+          control: control === 'start' ? 'start' : 'stop',
         }
       );
     } catch (error) {
@@ -96,56 +74,65 @@ useEffect(() => {
 
   // Call the function initially and whenever 'mode' changes
   sendModeData();
-}, [mode]);
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+}, [mode,control]);
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  // Lấy dữ liệu từ MongoDB
-    useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get("https://ap-southeast-1.aws.data.mongodb-api.com/app/application-0-zsywh/endpoint/GET_REACT");
-        const modifiedData = response.data.map(item => {
-          const qrValues = item.qr.split('/');
-          return {
-            qr: item.qr,
-            giatri1: qrValues[0] || '',
-            giatri2: qrValues[1] || '',
-            giatri3: qrValues[2] || '',
-            giatri4: qrValues[3] || '',
-          };
-        });
+// GET DỮ LIỆU VỀ TỪ MONGO
+useEffect(() => {
+  const fetchDataFromMongoDB = async () => {
+    try {
+      const response = await fetch('https://ap-southeast-1.aws.data.mongodb-api.com/app/application-0-zsywh/endpoint/get_auto');
+      const data = await response.json();
 
-        const sortedDataCopy = [...modifiedData];
-        sortedDataCopy.sort((a, b) => (sortOrder === 'asc' ? a.giatri1.localeCompare(b.giatri1) : b.giatri1.localeCompare(a.giatri1)));
+      console.log('Dữ liệu từ MongoDB:', data);
 
-        setData(modifiedData);
-        setSortedData(sortedDataCopy);
-
-        localStorage.setItem('myData', JSON.stringify(modifiedData));
-      } catch (error) {
-        console.error(error);
+      // // Xử lý logic dựa trên giá trị control
+      if (data.length > 0 && data[0].control === 'start') {
+        setStartSystem();
+      } else {
+        setStopSystem();
       }
-    };
 
-    fetchData();
-    const intervalId = setInterval(fetchData, 3000);
+      // // Xử lý logic dựa trên giá trị mode
+      if (data.length > 0 && data[0].mode === 'manual') {
+        setModeManual();
+      } else {
+        setModeAuto();
+      }
 
-    return () => clearInterval(intervalId);
-  }, [sortOrder]);
+    } catch (error) {
+      console.error('Lỗi khi lấy dữ liệu từ MongoDB:', error);
+    }
+  };
+
+  // Gọi fetchDataFromMongoDB mỗi khi component được render
+  fetchDataFromMongoDB();
+
+  // Thiết lập interval để cập nhật dữ liệu mỗi 5 giây (hoặc bất kỳ khoảng thời gian nào bạn muốn)
+  const intervalId = setInterval(fetchDataFromMongoDB, 5000);
+
+  // Clear interval khi component unmount để tránh memory leaks
+  return () => clearInterval(intervalId);
+}, []); // useEffect chỉ chạy một lần khi component được mount
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // NÚT SUBMIT ĐỂ GỬI DỮ LIỆU LÊN MONGO
-  const submit = async (e) => {
-    e.preventDefault();
-  
+const submit = async (e) => {
+  e.preventDefault();
+
+  // Kiểm tra nếu chế độ là 'auto', hiển thị cảnh báo và không gửi dữ liệu
+  if (mode === 'auto') {
+    window.alert('Không thể gửi dữ liệu khi chế độ là "auto".');
+    return;
+  }
+  else{
     try {
       await axios.post("https://ap-southeast-1.aws.data.mongodb-api.com/app/application-0-zsywh/endpoint/react", {
         servo1,
@@ -156,8 +143,7 @@ useEffect(() => {
   
       // Hiển thị thông báo khi dữ liệu được gửi thành công
       window.alert('Dữ liệu đã được gửi thành công!');
-
-
+  
       const response = await axios.get("https://ap-southeast-1.aws.data.mongodb-api.com/app/application-0-zsywh/endpoint/GET_REACT");
       const modifiedData = response.data.map(item => {
         const qrValues = item.qr.split('/');
@@ -169,21 +155,23 @@ useEffect(() => {
           giatri4: qrValues[3] || '',
         };
       });
-
+  
       const sortedDataCopy = [...modifiedData];
       sortedDataCopy.sort((a, b) => (sortOrder === 'asc' ? a.giatri1.localeCompare(b.giatri1) : b.giatri1.localeCompare(a.giatri1)));
-
+  
       setData(modifiedData);
       setSortedData(sortedDataCopy);
       localStorage.setItem('myData', JSON.stringify(modifiedData));
-
+  
     } catch (error) {
       console.error(error);
       // Hiển thị thông báo khi có lỗi
       window.alert('Có lỗi khi gửi dữ liệu!');
     }
   };
+  }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 
@@ -195,29 +183,32 @@ useEffect(() => {
     <div className='cont'>
       {/* CÁC THANH TRƯỢT ĐỂ POST DATA LÊN MONGODB */}
       <h1 className='tieude-chinh'> HỆ THỐNG ĐIỀU KHIỂN CÁNH TAY ROBOT</h1>
-        <div className='form-container'>
-              <div className='left-form'>
-                  <h1 className='tieude-bang'> BẢNG ĐIỀU KHIỂN TỰ ĐỘNG</h1>
-                      <div className='toggle-switch'>
-                            <span>Manual</span>
-                            <label className='switch'>
-                                <input type='checkbox' onChange={toggleMode} checked={mode === 'auto'} />
-                              <span className='slider round'></span>
-                            </label>
-                            <span>Auto</span>
-                      </div>
-                      <div className='start-stop'>
-                        <h2>NÚT ĐIỀU KHIỂN HỆ THỐNG TỰ ĐỘNG</h2>
-                          {/* NÚT START */}
-                          <button className='start-button' onClick={startSystem}>Start</button>
-                          {/* NÚT STOP */}
-                          <button className='stop-button' onClick={stopSystem}>Stop</button> 
-                      </div>
-                    
-                </div>  
+      <div className='form-container'>
+        <div className='left-form'>
+          <h1 className='tieude-bang'> BẢNG ĐIỀU KHIỂN TỰ ĐỘNG</h1>
+          <div className='toggle-buttons'>
+          <p className='mode-label'>CHỌN CHẾ ĐỘ ĐIỀU KHIỂN: </p>
+            <button onClick={setModeManual} className={`manual-button ${mode === 'manual' ? 'active' : ''}`}>       
+              MANUAL
+            </button>
+            <button onClick={setModeAuto} className={`auto-button ${mode === 'auto' ? 'active' : ''}`}>
+              AUTO
+            </button>
+          </div>
 
-          <div className='right-form'>
-              <h1 className='tieude-bang'> BẢNG ĐIỀU KHIỂN BẰNG TAY</h1>
+          <div className='start-stop'>
+            <p className='mode-label'>NÚT ĐIỀU KHIỂN CHẾ ĐỘ TỰ ĐỘNG: </p>
+            <button onClick={setStartSystem} className={`start-button ${control === 'start' ? 'active' : ''}`}>
+              START
+            </button>
+            <button onClick={setStopSystem} className={`stop-button ${control === 'stop' ? 'active' : ''}`}>
+              STOP
+            </button>
+          </div>                   
+        </div>  
+
+        <div className='right-form'>
+          <h1 className='tieude-bang'> BẢNG ĐIỀU KHIỂN BẰNG TAY</h1>
                         <label>
                             BASE 
                             <input
@@ -263,39 +254,22 @@ useEffect(() => {
                             {servo4}
                         </label>                 
                   <input type="submit" onClick={submit} value="SEND DATA " />
-            </div>
         </div>
-
-        <table>
-          <thead>
-            <tr>
-              <th>SAN PHAM</th>
-              <th>GIA TIEN</th>
-              <th>CHAT LUONG</th>
-              <th>KHOI LUONG</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedData.map((user, index) => (
-              <tr key={index}>
-                <td>{user.giatri1}</td>
-                <td>{user.giatri2}</td>
-                <td>{user.giatri3}</td>
-                <td>{user.giatri4}</td>
-              </tr>
-            ))}
-          </tbody>
-      </table>
+      </div>
 
 
       {/* NÚT ĐỂ CHUYỂN TRANG WEB */}
       <button className='button'>
         <Link to="/about">GO TO DATA</Link>
       </button>        
-           
+
     </div>
   );
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export default Home;
+
+    
+
+    
