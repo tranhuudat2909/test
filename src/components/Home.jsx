@@ -39,20 +39,24 @@ const setModeAuto = () => {
 
 // NÚT START 
 const setStartSystem = () => {
-  if (mode === 'manual') {
+  if (mode === 'auto') {
     // Hiển thị cảnh báo nếu chế độ là 'manual'
-    window.alert('Không thể "start" hệ thống khi chế độ là "manual"');
-    console.log('hien thi thong bao');
-  } else {
+    
     setControl('start');
     localStorage.setItem('control', 'start');
+  } else {
+    // setControl('start');
+    // localStorage.setItem('control', 'start');
+    
+    window.alert('Không thể "start" hệ thống khi chế độ là "manual"');
+    console.log('hien thi thong bao');
   }
 };
 
 // NÚT STOP 
 const setStopSystem = () => {
   setControl('stop');
-  localStorage.setItem('control', 'stop');
+  localStorage.setItem('control', 'stop');        
 };
 
 
